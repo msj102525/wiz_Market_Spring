@@ -1,0 +1,55 @@
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+
+# Vscode
+.vscode
+
+# SVN
+.svn
+
+# Build directories
+target/
+out/
+build/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Java specific
+*.class
+*.jar
+*.war
+*.ear
+*.db
+
+# IDE specific files
+*.DS_Store
+*.swp
+*.swo
+
+# Maven specific
+mvnw
+mvnw.cmd
+/.mvn/
+
+# Gradle specific (if applicable)
+.gradle/
+build/
+gradle-wrapper.jar
+gradle-wrapper.properties
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini

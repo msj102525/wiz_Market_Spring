@@ -1,0 +1,1775 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jyes.www.mapper.report.ReportMapper">
+
+
+
+	<!--                             리포트 테이블                                                                    -->
+	<!--  리포트 전체 조회  -->
+	<select id="reportByAll" resultType="com.jyes.www.vo.report.ReportVo">
+		SELECT 
+		    report_id AS reportId,
+		    store_id AS storeId,
+		    url AS url,
+		    hits AS hits,
+		    is_exposed AS isExposed,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+	</select>
+	
+	<!--  리포트 조회  -->
+	<select id="reportById" resultType="com.jyes.www.vo.report.ReportVo">
+		SELECT 
+		    report_id AS reportId,
+		    store_id AS storeId,
+		    url AS url,
+		    hits AS hits,
+		    is_exposed AS isExposed,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 조회  -->
+	<select id="reportListByConditionSearch" parameterType="com.jyes.www.dto.report.ReportSearchRequestDTO" resultType="com.jyes.www.dto.report.ReportListResponseDTO">
+		SELECT 
+		    tr.report_id AS reportId,
+		    DATE_FORMAT(tr.reg_date, '%Y-%m-%d %H:%i') AS regDate,
+		    tr.vol AS vol,
+		    tr.is_exposed AS isExposed,
+		    tr.url AS url,
+		    ts.name AS name,
+		    IF(tra.report_additional_id IS NULL, '미등록', CONCAT(tra.addr, ' ', COALESCE(tra.addr_detail, ''))) AS addr
+		FROM (SELECT
+			      tr1.*,
+		          COUNT(tr2.report_id) AS vol
+		      FROM 
+		          t_report AS tr1
+		      LEFT OUTER JOIN 
+		          t_report AS tr2
+		      ON 
+		          tr1.store_id = tr2.store_id 
+			  AND 
+			      tr1.report_id >= tr2.report_id
+		      GROUP BY 
+		          tr1.report_id
+		      ORDER BY 
+		          tr1.report_id) AS tr	
+		INNER JOIN 
+		    t_store AS ts
+		ON 
+		    tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+		    tr.report_id = tra.report_id
+		WHERE 
+		    1 =  1
+		AND 
+		    tr.is_deleted = 'N'
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchKey != null and searchKey == 'A' ">
+					AND	
+						tr.report_id = #{searchKeyword}
+				</when>
+				<when test="searchKey != null and searchKey == 'B' ">
+					AND	
+						ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+				</when>
+				<when test="searchKey != null and searchKey == 'C' ">
+					AND	
+						(tra.main_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.sub_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NOT NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ))
+				</when>
+				<when test="searchKey != null and searchKey == 'D' ">
+					AND	
+					   (tra.addr LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR 
+						tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</when>
+				<otherwise>
+					AND 
+						(tr.report_id = #{searchKeyword} 
+							OR 
+						 ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+							OR 
+						 tra.main_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.sub_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NOT NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.addr LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR 
+						 tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY tr.report_id DESC
+		LIMIT ${pageRow} OFFSET ${page}
+	</select>
+	
+	<!--  리포트 조회  -->
+	<select id="reportListByConditionSearchCount" parameterType="com.jyes.www.dto.report.ReportSearchRequestDTO" resultType="int">
+		SELECT 
+		    count(tr.report_id) AS count
+		FROM (SELECT
+			      tr1.*,
+		          COUNT(tr2.report_id) AS vol
+		      FROM 
+		          t_report AS tr1
+		      LEFT OUTER JOIN 
+		          t_report AS tr2
+		      ON 
+		          tr1.store_id = tr2.store_id 
+			  AND 
+			      tr1.report_id >= tr2.report_id
+		      GROUP BY 
+		          tr1.report_id
+		      ORDER BY 
+		          tr1.report_id) AS tr	
+		INNER JOIN 
+		    t_store AS ts
+		ON 
+		    tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+		    tr.report_id = tra.report_id
+		WHERE 
+		    1 =  1
+		AND 
+		    tr.is_deleted = 'N'
+		<if test="searchKeyword != null and searchKeyword != ''">
+			<choose>
+				<when test="searchKey != null and searchKey == 'A' ">
+					AND	
+						tr.report_id = #{searchKeyword}
+				</when>
+				<when test="searchKey != null and searchKey == 'B' ">
+					AND	
+						ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+				</when>
+				<when test="searchKey != null and searchKey == 'C' ">
+					AND	
+						(tra.main_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.sub_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NOT NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ))
+				</when>
+				<when test="searchKey != null and searchKey == 'D' ">
+					AND	
+					   (tra.addr LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR 
+						tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</when>
+				<otherwise>
+					AND 
+						(tr.report_id = #{searchKeyword} 
+							OR 
+						 ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+							OR 
+						 tra.main_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.sub_category_id IN (
+												  SELECT category_id 
+												  FROM t_category AS tc
+												  WHERE 
+													  1 = 1
+												  AND 
+													  parent_category_id IS NOT NULL
+												  AND 
+													  category_name LIKE CONCAT('%', #{searchKeyword}, '%')
+												  ) 
+							OR 
+						 tra.addr LIKE CONCAT('%', #{searchKeyword}, '%')
+							OR 
+						 tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY tr.report_id DESC
+	</select>
+	
+	<!-- 주소 또는 분류가 바뀐이력이 있는 리포트(추가 정보) 간소화 목록  / 변경 이력이 있는 리포트 조회-->
+	<select id="addrOrCategoryChanedReportSimpleList" parameterType="map" resultType="com.jyes.www.vo.report.ReportChangedListVo">
+		SELECT 
+			tr.report_id AS reportId,
+			DATE_FORMAT(tr.reg_date, '%Y-%m-%d') AS regDate,
+			tra.report_additional_id AS reportAdditionalId
+		FROM 
+			t_report AS tr
+		LEFT OUTER JOIN 
+			t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		WHERE 
+			1 = 1
+		AND 
+			tra.is_changed = 'Y'
+		AND 
+			tr.store_id = #{storeId}
+		ORDER BY tr.report_id DESC
+	</select>
+	
+	<!-- 주소 또는 분류가 바뀐이력이 있는 리포트(추가 정보) 목록  / 변경 이력이 있는 리포트 조회-->
+	<select id="addrOrCategoryChanedReportList" parameterType="map" resultType="com.jyes.www.vo.report.ReportChangedListVo">
+		SELECT 
+			tr.report_id AS reportId,
+			tra.report_additional_id AS reportAdditionalId,
+			tra.main_category_id AS mainCategoryId,
+			( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+			tra.addr AS addr,
+			tra.addr_detail AS addrDetail,
+			ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    ta.rn AS rn,
+			tra.online_url_category_cd AS onlineUrlCategoryCd,
+			tra.online_url AS onlineUrl,
+			tra.sales AS sales,
+			tra.file_group_id AS fileGroupId,
+			DATE_FORMAT(tr.reg_date, '%Y-%m-%d') AS regDate
+		FROM 
+			t_report AS tr
+		LEFT OUTER JOIN 
+			t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		LEFT OUTER JOIN	
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id
+		WHERE 
+			1 = 1
+		AND 
+			tra.is_changed = 'Y'
+		AND 
+			tr.store_id = #{storeId}
+		ORDER BY tr.report_id DESC
+	</select>
+	
+	<!-- 주소 또는 분류가 바뀐이력이 있는 리포트(추가 정보) / 변경 이력이 있는 리포트 조회-->
+	<select id="addrOrCategoryChanedReport" parameterType="map" resultType="com.jyes.www.vo.report.ReportChangedListVo">
+		SELECT 
+			tr.report_id AS reportId,
+			tra.report_additional_id AS reportAdditionalId,
+			tra.main_category_id AS mainCategoryId,
+			( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+			tra.addr AS addr,
+			tra.addr_detail AS addrDetail,
+			ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    ta.rn AS rn,
+			tra.online_url_category_cd AS onlineUrlCategoryCd,
+			tra.online_url AS onlineUrl,
+			tra.sales AS sales,
+			tra.file_group_id AS fileGroupId,
+			DATE_FORMAT(tr.reg_date, '%Y-%m-%d') AS regDate
+		FROM 
+			t_report AS tr
+		LEFT OUTER JOIN 
+			t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		LEFT OUTER JOIN	
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id
+		WHERE 
+			1 = 1
+		AND 
+			tra.is_changed = 'Y'
+		AND 
+			tr.report_id = #{reportId}
+		ORDER BY tr.report_id DESC
+	</select>
+	
+	<!--  이전 리포트 추가 정보 지역시퀀스, 대분류, 중분류, 주소, 상세주소 조회  -->
+	<select id="beforeReportAdditionalByStoreId" parameterType="map" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT 
+			tra.area_id AS areaId,
+			tra.main_category_id AS mainCategoryId,
+			tra.sub_category_id AS subCategoryId,
+			tra.addr AS addr,
+			tra.addr_detail AS addrDetail
+		FROM 
+			t_report AS tr
+		LEFT OUTER JOIN 
+			t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		WHERE 
+			1 = 1
+		AND 
+			tr.store_id = #{storeId}
+		AND	
+			tr.report_id &lt; #{reportId}
+		ORDER BY tr.report_id DESC 
+		LIMIT 1
+	</select>
+	
+	<select id="viewReport" parameterType="map" resultType="com.jyes.www.dto.report.ReportDTO">
+		SELECT 
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    ts.name AS name,
+		    ts.start_date AS startDate,
+		    tr.url AS url,
+		    tr.hits AS hits,
+		    tr.is_exposed AS isExposed,
+		    tr.view_is_hid AS viewIsHid,
+		    tr.vol AS vol,
+		    tr.is_deleted AS isDeleted,
+		    tr.etc AS etc,
+		    tr.reg_id AS regId,
+		    tr.reg_date AS regDate,
+		    tr.mod_id AS modId,
+		    tr.mod_date AS modDate
+		FROM (SELECT 
+		          tr1.*,
+		          COUNT(tr2.report_id) AS vol
+		      FROM 
+		          t_report AS tr1
+		      LEFT OUTER JOIN 
+		          t_report AS tr2
+		      ON 
+		          tr1.store_id = tr2.store_id 
+		      AND 
+		          tr1.report_id >= tr2.report_id
+		      GROUP BY 
+		          tr1.report_id
+		      ORDER BY 
+		          tr1.report_id ) AS tr
+		INNER JOIN 
+		    t_store AS ts
+		ON 
+		    tr.store_id = ts.store_id
+		WHERE 
+		    1 = 1
+		AND 
+		    tr.is_deleted = 'N'
+		AND 
+		    tr.report_id = #{reportId}
+	</select>
+	
+	<select id="getReportAdditional" parameterType="map" resultType="com.jyes.www.dto.report.ReportAdditionalResponseDTO">
+		SELECT 
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.main_category_id AS mainCategoryId,
+		    tra.sub_category_id AS subCategoryId,
+		    tra.addr AS addr,
+		    tra.addr_detail AS addrDetail,
+		    tra.online_url_category_cd AS onlineUrlCategoryCd,
+		    tra.online_url AS onlineUrl,
+		    tra.sales AS sales,
+		    tra.file_group_id AS fileGroupId,
+		    tr.reg_date AS regDate,
+		    tr.mod_date AS modDate
+		FROM 
+		    t_report AS tr
+		INNER JOIN 
+			t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		WHERE 
+			1 = 1
+		AND 
+			tr.is_deleted = 'N'
+		AND 
+			tr.report_id = #{reportId}
+	</select>
+	
+	<!-- 리포트 등록 -->
+	<insert id="insertReport" parameterType="com.jyes.www.vo.report.ReportVo" useGeneratedKeys="true" keyProperty="reportId">
+		INSERT INTO t_report 
+			(store_id, 
+			 <if test="url != null and url != ''">
+			     url, 
+			 </if>
+			 reg_id, 
+			 reg_date)
+		VALUES
+  			(#{storeId}, 
+  			 <if test="url != null and url != ''">
+  			     #{url}, 
+  			 </if>
+  			 #{regId}, 
+  			 NOW())
+	</insert>
+	
+	<!-- 리포트 순번 수정 -->
+	<update id="insertReportUrl" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report
+		SET 
+	    	url = #{url}
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!-- 리포트 순번 수정 -->
+	<update id="reportViewChange" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!-- 리포트 수정 -->
+	<update id="updateReport" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report
+		SET 
+	    	url = #{url},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!-- 리포트 삭제 -->
+	<update id="deleteReport" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!-- 리포트 삭제 -->
+	<update id="deleteReportByStoreId" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_report
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    store_id = #{storeId}
+	</update>
+	
+	<!-- 노출 ON/OFF -->
+	<update id="changeExposureReport" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report
+		SET 
+	    	is_exposed = #{isExposed},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!--  조회수 증가  -->
+	<update id="increaseHitsReport">
+		UPDATE t_report
+		SET 
+	    	hits = hits + 1
+		WHERE
+		    report_id = #{reportId}
+    </update>
+	
+	<!--                       리포트 추가 정보 테이블                                                     -->
+	<!-- 리포트 추가 정보 전체 조회 -->
+	<select id="reportAdditionalByAll" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT 
+		    report_additional_id AS reportAdditionalId,
+		    report_id AS reportId,
+		    area_id AS areaId,
+		    main_category_id AS mainCategoryId,
+		    sub_category_id AS subCategoryId,
+		    addr AS addr,
+		    addr_detail AS addrDetail,
+		    online_url_category_cd AS onlineUrlCategoryCd,
+		    online_url AS onlineUrl,
+		    sales AS sales,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    is_changed AS isChanged,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_additional
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+	</select>
+	
+	<!-- 리포트 추가 정보 전체 조회 -->
+	<select id="reportAdditionalById" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT 
+		    report_additional_id AS reportAdditionalId,
+		    report_id AS reportId,
+		    area_id AS areaId,
+		    main_category_id AS mainCategoryId,
+		    sub_category_id AS subCategoryId,
+		    addr AS addr,
+		    addr_detail AS addrDetail,
+		    online_url_category_cd AS onlineUrlCategoryCd,
+		    online_url AS onlineUrl,
+		    sales AS sales,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    is_changed AS isChanged,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_additional
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_additional_id = #{reportAdditionalId}
+	</select>
+	
+	<!--  해당 리포트의 지역 시퀀스, 대분류, 중분류 가져오기  -->
+	<select id="getReportAreaAndCaterory" parameterType="map" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT
+			area_id AS areaId, 
+			main_category_id AS mainCategoryId, 
+			sub_category_id AS subCategoryId 
+		FROM 
+			t_report_additional 
+		WHERE 
+			1 = 1
+		AND 
+			report_id = #{reportId}
+	</select>
+	
+	<!-- 리포트 추가 정보 조회 -->
+	<select id="reportAdditionalByReportId" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT 
+		    report_additional_id AS reportAdditionalId,
+		    report_id AS reportId,
+		    area_id AS areaId,
+		    main_category_id AS mainCategoryId,
+		    sub_category_id AS subCategoryId,
+		    addr AS addr,
+		    addr_detail AS addrDetail,
+		    online_url_category_cd AS onlineUrlCategoryCd,
+		    online_url AS onlineUrl,
+		    sales AS sales,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    is_changed AS isChanged,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_additional
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_id = #{reportId}
+	</select>
+	
+	<!-- 리포트 추가 정보 전체 조회 -->
+	<select id="reportLocationAnalysisSettingByReportId" parameterType="map" resultType="com.jyes.www.vo.report.ReportAdditionalVo">
+		SELECT 
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.report_id AS reportId,
+		    tra.area_id AS areaId,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    tra.reg_date AS regDate,
+		    tla.aprtment_household AS aprtmentHousehold,
+		    tla.aprtment_transaction_price AS aprtmentTransactionPrice,
+		    tla.aprtment_residence AS aprtmentResidence,
+		    tla.flow_population AS flowPopulation,
+		    tla.flow_age_range_cd AS flowAgeRangeCd,
+		    tla.flow_time_start_cd AS flowTimeStartCd,
+		    tla.flow_time_end_cd AS flowTimeEndCd,
+		    tla.residence_population AS residencePopulation,
+		    tla.work_population AS workPopulation,
+		    tla.household AS household,
+		    tla.business AS business,
+		    tla.income AS income,
+		    tla.delivery_gender_cd AS deliveryGenderCd,
+		    tla.delivery_age_range_cd AS deliveryAgeRangeCd,
+		    tla.delivery_week_cd AS deliveryWeekCd,
+		    tla.delivery_time_start_cd AS deliveryTimeStartCd,
+		    tla.delivery_time_end_cd AS deliveryTimeEndCd,
+		    tla.delivery_method_cd AS deliveryMethodCd
+		FROM 
+		    t_report_additional AS tra
+		LEFT OUTER JOIN	
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id
+		LEFT OUTER JOIN	
+			t_location_analysis AS tla	
+		ON 
+			tra.area_id = tla.area_id
+		WHERE 
+			1 = 1
+		AND	
+			tra.is_deleted = 'N'
+		AND	
+			tra.report_id = #{reportId}
+	</select>
+	
+	<select id="viewReportAdditional" parameterType="map" resultType="com.jyes.www.dto.report.ReportAdditionalDTO">
+		SELECT 
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.report_id AS reportId,
+		    tra.area_id AS areaId,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    ta.rn AS rn,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    tra.addr AS addr,
+		    tra.addr_detail AS addrDetail,
+		    online_url_category_cd AS onlineUrlCategoryCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'ONLN' AND detail_cd = tra.online_url_category_cd ) AS onlineUrlCategoryName,
+		    tra.online_url AS onlineUrl,
+		    tra.sales AS sales,
+		    tra.file_group_id AS fileGroupId,
+		    tra.view_seq AS viewSeq,
+		    tra.is_changed AS isChanged,
+		    tra.view_is_hid AS viewIsHid,
+		    tra.is_deleted AS isDeleted,
+		    tra.etc AS etc,
+		    tra.reg_id AS regId,
+		    tra.reg_date AS regDate,
+		    tra.mod_id AS modId,
+		    tra.mod_date AS modDate
+		FROM 
+		    t_report_additional AS tra
+		LEFT OUTER JOIN 
+		    t_area AS ta
+		ON 
+		    tra.area_id = ta.area_id
+		WHERE 
+			1 = 1
+		AND	
+			tra.is_deleted = 'N'
+		AND	
+			report_id = #{reportId}
+	</select>
+	
+	<!-- 리포트 추가 정보 등록 -->
+	<insert id="insertReportAdditional" parameterType="com.jyes.www.vo.report.ReportAdditionalVo" useGeneratedKeys="true" keyProperty="reportAdditionalId">
+		INSERT INTO t_report_additional
+			(report_id,
+			 area_id,
+			 main_category_id,
+			 sub_category_id,
+			 addr,
+			 addr_detail,
+			 <if test="onlineUrlCategoryCd != null and onlineUrlCategoryCd != ''">
+			 	online_url_category_cd,
+			 </if>
+			 <if test="onlineUrl != null and onlineUrl != ''">
+			 	online_url,
+			 </if>
+			 <if test="sales != null">
+			 	sales,
+			 </if>
+			 <if test="fileGroupId != null and fileGroupId > 0">
+			 	file_group_id,
+			 </if>
+			 is_changed,
+			 reg_id,
+			 reg_date)
+		VALUES
+			(#{reportId}, 
+			 #{areaId}, 
+			 #{mainCategoryId}, 
+			 #{subCategoryId}, 
+			 #{addr}, 
+			 #{addrDetail}, 
+			 <if test="onlineUrlCategoryCd != null and onlineUrlCategoryCd != ''">
+			 	#{onlineUrlCategoryCd}, 
+			 </if>
+			 <if test="onlineUrl != null and onlineUrl != ''">
+			 	#{onlineUrl}, 
+			 </if>
+			 <if test="sales != null and sales != ''">
+			 	#{sales}, 
+			 </if>
+			 <if test="fileGroupId != null and fileGroupId > 0">
+			 	#{fileGroupId}, 
+			 </if>
+			 #{isChanged}, 
+			 #{regId}, 
+			 NOW())
+	</insert>
+	
+	<!-- 리포트 추가 정보 수정 -->
+	<update id="updateReportAdditional" parameterType="com.jyes.www.vo.report.ReportAdditionalVo">
+	    UPDATE t_report_additional
+	    SET
+            online_url_category_cd = #{onlineUrlCategoryCd},
+            online_url = #{onlineUrl},
+            sales = #{sales},
+	        <if test="fileGroupId != null and fileGroupId > 0">
+	            file_group_id = #{fileGroupId},
+	        </if>
+	        mod_id = #{regId},
+	        mod_date = NOW()
+	    WHERE
+	        report_additional_id = #{reportAdditionalId}
+	</update>
+	
+	<!-- 리포트 추가 정보 순번 수정 -->
+	<update id="reportAdditionalViewChange" parameterType="com.jyes.www.vo.report.ReportAdditionalVo">
+		UPDATE t_report_additional 
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_additional_id = #{reportAdditionalId}
+	</update>
+	
+	<!-- 리포트 추가 정보 삭제 -->
+	<update id="deleteReportAdditionalByStoreId" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_report_additional
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id IN (SELECT report_id
+		    			  FROM t_report
+		    			  WHERE 1 = 1
+		    			  AND store_id = #{storeId})
+	</update>
+	
+	<!-- 리포트 추가 정보 삭제 -->
+	<update id="deleteReportAdditionalByReportId" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report_additional
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!--                               리포트 세부 정보 테이블                                                                -->
+	<select id="viewReportDetail" parameterType="map" resultType="com.jyes.www.dto.report.ReportDetailDTO">
+		SELECT 
+		    report_detail_id AS reportDetailId,
+		    report_id AS reportId,
+		    subway_distance AS subwayDistance,
+		    bus_distance AS busDistance,
+		    road_distance AS roadDistance,
+		    gpts_strategy AS gptsStrategy,
+		    gpts_slogan AS gptsSlogan,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_detail AS trd
+		WHERE 
+			1 = 1
+		AND 
+			is_deleted = 'N'
+		AND 
+			report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 세부 정보 등록  -->
+	<insert id="insertReportDetail" parameterType="com.jyes.www.vo.report.ReportDetailVo" useGeneratedKeys="true" keyProperty="reportDetailId">
+		INSERT INTO t_report_detail
+		   (report_id, 
+			subway_distance,
+			bus_distance,
+			road_distance,
+			<if test="gptsStrategy != null">
+				gpts_strategy,
+			</if>
+			<if test="gptsSlogan != null">
+				gpts_slogan,
+			</if>
+			reg_id,
+			reg_date)
+		VALUES
+		   (#{reportId},
+			#{subwayDistance},
+			#{busDistance},
+			#{roadDistance},
+			<if test="gptsStrategy != null">
+				#{gptsStrategy},
+			</if>
+			<if test="gptsSlogan != null">
+				#{gptsSlogan},
+			</if>
+			#{regId},
+			NOW())
+	</insert>
+	
+	<!-- 리포트 세부 정보 수정 -->
+	<update id="updateReportDetail" parameterType="com.jyes.www.vo.report.ReportDetailVo">
+	    UPDATE t_report_detail
+	    SET
+	    	<if test="subwayDistance != null">
+	        	subway_distance = #{subwayDistance},
+	        </if>
+	        <if test="busDistance != null">
+	        	bus_distance = #{busDistance},
+	        </if>
+	        <if test="roadDistance != null">
+	        	road_distance = #{roadDistance},
+	        </if>
+        	gpts_strategy = #{gptsStrategy},
+        	gpts_slogan = #{gptsSlogan},
+	        mod_id = #{modId},
+	        mod_date = NOW()
+	    WHERE
+	        report_detail_id = #{reportDetailId}
+	</update>
+	
+	<!-- 리포트 세부 정보 순번 수정 -->
+	<update id="reportDetailViewChange" parameterType="com.jyes.www.vo.report.ReportDetailVo">
+		UPDATE t_report_detail 
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_detail_id = #{reportDetailId}
+	</update>
+	
+	<!-- 리포트 세부 정보 삭제 -->
+	<update id="deleteReportDetailByStoreId" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_report_detail
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id IN (SELECT report_id
+		    			  FROM t_report
+		    			  WHERE 1 = 1
+		    			  AND store_id = #{storeId})
+	</update>
+	
+	<!-- 리포트 세부 정보 삭제 -->
+	<update id="deleteReportDetailByReportId" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report_detail
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!--                               리포트 지역 입지 분석 테이블                                                       -->
+	<!--  리포트 지역 입지 분석 전체 조회  -->
+	<select id="reportLocationAnalysisByAll" resultType="com.jyes.www.vo.report.ReportLocationAnalysisVo">
+		SELECT 
+		    report_location_analysis_id AS reportLocationAnalysisId,
+		    report_id AS reportId,
+		    location_analysis_id AS locationAnalysisId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_location_analysis
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+	</select>
+	
+	<!--  리포트 지역 입지 분석 조회  -->
+	<select id="reportLocationAnalysisById" resultType="com.jyes.www.vo.report.ReportLocationAnalysisVo">
+		SELECT 
+		    report_location_analysis_id AS reportLocationAnalysisId,
+		    report_id AS reportId,
+		    location_analysis_id AS locationAnalysisId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_location_analysis
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_location_analysis_id = #{reportLocationAnalysisId}
+	</select>
+	
+	<!--  리포트 :: 리포트 지역 입지 분석 정보 불러오기  -->
+	<select id="getReportLocationAnalysisView" parameterType="map" resultType="com.jyes.www.dto.report.ReportLocationAnalysisResponseDTO">
+		SELECT
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    ts.name AS name,
+		    DATE_FORMAT(tr.reg_date, '%Y-%m-%d %H:%i') AS regDate,
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.area_id AS areaId,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    trla.report_location_analysis_id AS reportLocationAnalysisId,
+		    tla.location_analysis_id AS locationAnalysisId,
+		    tla.aprtment_household AS aprtmentHousehold,
+		    tla.aprtment_transaction_price AS aprtmentTransactionPrice,
+		    tla.aprtment_residence AS aprtmentResidence,
+		    tla.flow_population AS flowPopulation,
+		    tla.flow_age_range_cd AS flowAgeRangeCd,
+		    tla.flow_time_start_cd AS flowTimeStartCd,
+		    tla.flow_time_end_cd AS flowTimeEndCd,
+		    tla.residence_population AS residencePopulation,
+		    tla.work_population AS workPopulation,
+		    tla.household AS household,
+		    tla.business AS business,
+		    tla.income AS income,
+		    tla.delivery_gender_cd AS deliveryGenderCd,
+		    tla.delivery_age_range_cd AS deliveryAgeRangeCd,
+		    tla.delivery_week_cd AS deliveryWeekCd,
+		    tla.delivery_time_start_cd AS deliveryTimeStartCd,
+		    tla.delivery_time_end_cd AS deliveryTimeEndCd,
+		    tla.delivery_method_cd AS deliveryMethodCd
+		FROM 
+			t_report AS tr
+		INNER JOIN 
+			t_store AS ts
+		ON 
+			tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		INNER JOIN 
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id 
+		LEFT OUTER JOIN 
+			t_report_location_analysis AS trla
+		ON 
+			tr.report_id = trla.report_id 
+		LEFT OUTER JOIN 
+		    t_location_analysis AS tla
+		ON 
+		    tra.area_id = tla.area_id
+		WHERE 
+			1 = 1
+		AND	
+			tr.report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 :: 리포트 지역 상권 분석 정보 불러오기  -->
+	<select id="getReportBusinessDistrictAnalysisView" parameterType="map" resultType="com.jyes.www.dto.report.ReportBusinessDistrictAnalysisResponseDTO">
+		SELECT
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    ts.name AS name,
+		    DATE_FORMAT(tr.reg_date, '%Y-%m-%d %H:%i') AS regDate,
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.area_id AS areaId,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    trbda.report_business_district_analysis_id AS reportBusinessDistrictAnalysisId,
+		    tbda.business_district_analysis_id AS businessDistrictAnalysisId,
+		    tbda.average_cost AS averageCost,
+		    tbda.average_earning AS averageEarning,
+		    tbda.operate_profit AS operateProfit,
+		    tbda.operate_expense AS operateExpense,
+		    tbda.all_business_density AS allBusinessDensity,
+		    tbda.sido_business_density AS sidoBusinessDensity,
+		    tbda.dong_business_density AS dongBusinessDensity,
+		    tbda.market_sales_scale AS marketSalesScale,
+		    tbda.store_sales_scale AS storeSalesScale,
+		    tbda.unit_price AS unitPrice,
+		    tbda.uses AS uses,
+		    tbda.peak_gender_cd AS peakGenderCd,
+		    tbda.peak_age_range_cd AS peakAgeRangeCd,
+		    tbda.peak_week_cd AS peakWeekCd,
+		    tbda.peak_time_start_cd AS peakTimeStartCd,
+		    tbda.peak_time_end_cd AS peakTimeEndCd
+		FROM 
+			t_report AS tr
+		INNER JOIN 
+			t_store AS ts
+		ON 
+			tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		INNER JOIN 
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id 
+		LEFT OUTER JOIN 
+			t_report_business_district_analysis AS trbda
+		ON 
+			tr.report_id = trbda.report_id 
+		LEFT OUTER JOIN 
+		    t_business_district_analysis AS tbda
+		ON 
+		    tra.area_id = tbda.area_id
+		AND 
+			tra.main_category_id = tbda.main_category_id
+		AND	
+			tra.sub_category_id = tbda.sub_category_id
+		WHERE 
+			1 = 1
+		AND	
+			tr.report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 :: 리포트 세부 정보 불러오기  -->
+	<select id="getReportDetailView" parameterType="map" resultType="com.jyes.www.dto.report.ReportDetailResponseDTO">
+		SELECT
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    ts.name AS name,
+		    DATE_FORMAT(tr.reg_date, '%Y-%m-%d %H:%i') AS regDate,
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.area_id AS areaId,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm,
+		    trd.subway_distance AS subwayDistance,
+		    trd.bus_distance AS busDistance,
+		    trd.road_distance AS roadDistance,
+		    trd.gpts_strategy AS gptsStrategy,
+		    trd.gpts_slogan AS gptsSlogan,
+		    trd.report_detail_id AS reportDetailId
+		FROM 
+			t_report AS tr
+		INNER JOIN 
+			t_store AS ts
+		ON 
+			tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		INNER JOIN 
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id 
+		LEFT OUTER JOIN 
+			t_report_detail AS trd
+		ON 
+			tr.report_id = trd.report_id 
+		WHERE 
+			1 = 1
+		AND	
+			tr.report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 :: 리포트 화면 공통 정보 불러오기  -->
+	<select id="getReportView" parameterType="map" resultType="com.jyes.www.dto.report.ReportViewResponseDTO">
+		SELECT
+		    tr.report_id AS reportId,
+		    tr.store_id AS storeId,
+		    ts.name AS name,
+		    DATE_FORMAT(tr.reg_date, '%Y-%m-%d %H:%i') AS regDate,
+		    tra.report_additional_id AS reportAdditionalId,
+		    tra.area_id AS areaId,
+		    tra.main_category_id AS mainCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.main_category_id ) AS mainCategoryName,
+		    tra.sub_category_id AS subCategoryId,
+		    ( SELECT category_name FROM t_category WHERE 1 = 1 AND category_id = tra.sub_category_id ) AS subCategoryName,
+		    ta.si_nm AS siNm,
+		    ta.sgg_nm AS sggNm,
+		    ta.emd_nm AS emdNm,
+		    ta.li_nm AS liNm
+		FROM 
+			t_report AS tr
+		INNER JOIN 
+			t_store AS ts
+		ON 
+			tr.store_id = ts.store_id
+		INNER JOIN 
+		    t_report_additional AS tra
+		ON 
+			tr.report_id = tra.report_id
+		INNER JOIN 
+			t_area AS ta
+		ON 
+			tra.area_id = ta.area_id 
+		WHERE 
+			1 = 1
+		AND	
+			tr.report_id = #{reportId}
+	</select>
+	
+	<select id="viewReportLocationAnalysis" parameterType="map" resultType="com.jyes.www.dto.report.ReportLocationAnalysisDTO">
+		SELECT
+		    trla.report_location_analysis_id AS reportLocationAnalysisId,
+		    trla.report_id AS reportId,
+		    trla.location_analysis_id AS locationAnalysisId,
+		    tla.area_id AS areaId,
+		    tla.aprtment_household AS aprtmentHousehold,
+		    tla.aprtment_transaction_price AS aprtmentTransactionPrice,
+		    tla.aprtment_residence AS aprtmentResidence,
+		    tla.flow_population AS flowPopulation,
+		    tla.flow_age_range_cd AS flowAgeRangeCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'MARG' AND detail_cd = tla.flow_age_range_cd ) AS flowAgeRangeName,
+		    tla.flow_time_start_cd AS flowTimeStartCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tla.flow_time_start_cd ) AS flowTimeStartName,
+		    tla.flow_time_end_cd AS flowTimeEndCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tla.flow_time_end_cd ) AS flowTimeEndName,
+		    tla.residence_population AS residencePopulation,
+		    tla.work_population AS workPopulation,
+		    tla.household AS household,
+		    tla.business AS business,
+		    tla.income AS income,
+		    tla.delivery_gender_cd AS deliveryGenderCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'GEND' AND detail_cd = tla.delivery_gender_cd ) AS deliveryGenderName,
+		    tla.delivery_age_range_cd AS deliveryAgeRangeCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'MARG' AND detail_cd = tla.delivery_age_range_cd ) AS deliveryAgeRangeName,
+		    tla.delivery_week_cd AS deliveryWeekCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'WEEK' AND detail_cd = tla.delivery_week_cd ) AS deliveryWeekName,
+		    tla.delivery_time_start_cd AS deliveryTimeStartCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tla.delivery_time_start_cd ) AS deliveryTimeStartName,
+		    tla.delivery_time_end_cd AS deliveryTimeEndCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tla.delivery_time_end_cd ) AS deliveryTimeEndName,
+		    tla.delivery_method_cd AS deliveryMethodCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'DELI' AND detail_cd = tla.delivery_method_cd ) AS deliveryMethodName,
+		    trla.view_seq AS viewSeq,
+		    trla.view_is_hid AS viewIsHid,
+		    trla.is_deleted AS isDeleted,
+		    trla.etc AS etc,
+		    trla.reg_id AS regId,
+		    trla.reg_date AS regDate,
+		    trla.mod_id AS modId,
+		    trla.mod_date AS modDate
+		FROM 
+		    t_report_location_analysis AS trla
+		INNER JOIN 
+			t_location_analysis AS tla
+		ON 
+			trla.location_analysis_id = tla.location_analysis_id
+		WHERE 
+			1 = 1
+		AND 
+			trla.is_deleted = 'N'
+		AND	
+			trla.report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 지역 입지 분석 등록  -->
+	<insert id="insertReportLocationAnalysis" parameterType="com.jyes.www.vo.report.ReportLocationAnalysisVo" useGeneratedKeys="true" keyProperty="reportLocationAnalysisId">
+		INSERT INTO t_report_location_analysis 
+			(report_id, 
+		     location_analysis_id, 
+		     reg_id, 
+		     reg_date) 
+	     VALUES 
+	     	(#{reportId}, 
+		     #{locationAnalysisId}, 
+		     #{regId}, 
+		     NOW())
+	</insert>
+	
+	<!-- 리포트 지역 입지 순번 수정 -->
+	<update id="reportLocationAnalysisViewChange" parameterType="com.jyes.www.vo.report.ReportLocationAnalysisVo">
+		UPDATE t_report_location_analysis 
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_location_analysis_id = #{reportLocationAnalysisId}
+	</update>
+	
+	<!-- 리포트 지역 입지 분석 삭제 -->
+	<update id="deleteReportLocationAnalysisByStoreId" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_report_location_analysis
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id IN (SELECT report_id
+		    			  FROM t_report
+		    			  WHERE 1 = 1
+		    			  AND store_id = #{storeId})
+	</update>
+	
+	<!-- 리포트 지역 입지 분석 삭제 -->
+	<update id="deleteReportLocationAnalysisByReportId" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report_location_analysis
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	<!--                               리포트 지역 상권 분석 테이블                                                       -->
+	<!--  리폴트 지역 상권 분석 전체 조회  -->
+	<select id="reportBusinessDistrictAnalysisByAll" resultType="com.jyes.www.vo.report.ReportBusinessDistrictAnalysisVo">
+		SELECT 
+		    report_business_district_analysis_id AS reportBusinessDistrictAnalysisId,
+		    report_id AS reportId,
+		    business_district_analysis_id AS businessDistrictAnalysisId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_business_district_analysis
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+	</select>
+	
+	<!--  리폴트 지역 상권 분석 조회  -->
+	<select id="reportBusinessDistrictAnalysisById" resultType="com.jyes.www.vo.report.ReportBusinessDistrictAnalysisVo">
+		SELECT 
+		    report_business_district_analysis_id AS reportBusinessDistrictAnalysisId,
+		    report_id AS reportId,
+		    business_district_analysis_id AS businessDistrictAnalysisId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_business_district_analysis
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_business_district_analysis_id = #{reportBusinessDistrictAnalysisId}
+	</select>
+	
+	<!--  리포트 수정 :: 리포트 지역 상권 분석 정보 불러오기  -->
+	<select id="getReportBusinessDistrictAnalysis" resultType="com.jyes.www.vo.report.ReportBusinessDistrictAnalysisInformationVo">
+		SELECT
+		    trbda.report_business_district_analysis_id AS reportBusinessDistrictAnalysisId,
+		    trbda.report_id AS reportId,
+		    trbda.business_district_analysis_id AS businessDistrictAnalysisId,
+		    trbda.view_seq AS viewSeq,
+		    trbda.view_is_hid AS viewIsHid,
+		    tbda.area_id AS areaId,
+		    tbda.main_category_id AS mainCategoryId,
+		    tbda.sub_category_id AS subCategoryId,
+		    tbda.average_cost AS averageCost,
+		    tbda.average_earning AS averageEarning,
+		    tbda.operate_profit AS operateProfit,
+		    tbda.operate_expense AS operateExpense,
+		    tbda.all_business_density AS allBusinessDensity,
+		    tbda.sido_business_density AS sidoBusinessDensity,
+		    tbda.dong_business_density AS dongBusinessDensity,
+		    tbda.market_sales_scale AS marketSalesScale,
+		    tbda.store_sales_scale AS storeSalesScale,
+		    tbda.unit_price AS unitPrice,
+		    tbda.uses AS uses,
+		    tbda.peak_gender_cd AS peakGenderCd,
+		    tbda.peak_age_range_cd AS peakAgeRangeCd,
+		    tbda.peak_week_cd AS peakWeekCd,
+		    tbda.peak_time_start_cd AS peakTimeStartCd,
+		    tbda.peak_time_end_cd AS peakTimeEndCd
+		FROM 
+		    t_report_business_district_analysis AS trbda
+		INNER JOIN  
+		    t_business_district_analysis AS tbda
+		ON  
+		    trbda.business_district_analysis_id = tbda.business_district_analysis_id
+		WHERE 
+			1 = 1
+		AND 
+			report_id = #{reportId}
+	</select>
+	
+	<select id="viewReportBusinessDistrictAnalysis" parameterType="map" resultType="com.jyes.www.dto.report.ReportBusinessDistrictAnalysisDTO">
+		SELECT
+		    trbda.report_business_district_analysis_id AS reportBusinessDistrictAnalysisId,
+		    trbda.report_id AS reportId,
+		    trbda.business_district_analysis_id AS businessDistrictAnalysisId,
+		    tbda.area_id AS areaId,
+		    tbda.main_category_id AS mainCategoryId,
+		    tbda.sub_category_id AS subCategoryId,
+		    tbda.average_cost AS averageCost,
+		    tbda.average_earning AS averageEarning,
+		    tbda.operate_profit AS operateProfit,
+		    tbda.operate_expense AS operateExpense,
+		    tbda.all_business_density AS allBusinessDensity,
+		    tbda.sido_business_density AS sidoBusinessDensity,
+		    tbda.dong_business_density AS dongBusinessDensity,
+		    tbda.market_sales_scale AS marketSalesScale,
+		    tbda.store_sales_scale AS storeSalesScale,
+		    tbda.unit_price AS unitPrice,
+		    tbda.uses AS uses,
+		    tbda.peak_gender_cd AS peakGenderCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'GEND' AND detail_cd = tbda.peak_gender_cd ) AS peakGenderName,
+		    tbda.peak_age_range_cd AS peakAgeRangeCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'MARG' AND detail_cd = tbda.peak_age_range_cd ) AS peakAgeRangeName,
+		    tbda.peak_week_cd AS peakWeekCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'WEEK' AND detail_cd = tbda.peak_week_cd ) AS peakWeekName,
+		    tbda.peak_time_start_cd AS peakTimeStartCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tbda.peak_time_start_cd ) AS peakTimeStartName,
+		    tbda.peak_time_end_cd AS peakTimeEndCd,
+		    ( SELECT detail_cd_name FROM t_code WHERE 1 = 1 AND group_cd = 'TIME' AND detail_cd = tbda.peak_time_end_cd ) AS peakTimeEndName,
+		    trbda.view_seq AS viewSeq,
+		    trbda.view_is_hid AS viewIsHid,
+		    trbda.is_deleted AS isDeleted,
+		    trbda.etc AS etc,
+		    trbda.reg_id AS regId,
+		    trbda.reg_date AS regDate,
+		    trbda.mod_id AS modId,
+		    trbda.mod_date AS modDate
+		FROM 
+		    t_report_business_district_analysis AS trbda
+		INNER JOIN 
+			t_business_district_analysis AS tbda
+		ON 
+			trbda.business_district_analysis_id = tbda.business_district_analysis_id
+		WHERE 
+		    trbda.is_deleted = 'N'
+		AND 
+			trbda.report_id = #{reportId} 
+	</select>
+	
+	<!--  리포트 지역 상권 분석 등록  -->
+	<insert id="insertReportBusinessDistrictAnalysis" parameterType="com.jyes.www.vo.report.ReportBusinessDistrictAnalysisVo" useGeneratedKeys="true" keyProperty="reportBusinessDistrictAnalysisId">
+		INSERT INTO t_report_business_district_analysis 
+			(report_id, 
+		     business_district_analysis_id, 
+		     reg_id, 
+		     reg_date) 
+	     VALUES 
+	     	(#{reportId}, 
+		     #{businessDistrictAnalysisId}, 
+		     #{regId}, 
+		     NOW())
+	</insert>
+	
+	<!-- 리포트 지역 상권 분석 순번 수정 -->
+	<update id="reportBusinessDistrictAnalysisViewChange" parameterType="com.jyes.www.vo.report.ReportBusinessDistrictAnalysisVo">
+		UPDATE t_report_business_district_analysis 
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_business_district_analysis_id = #{reportBusinessDistrictAnalysisId}
+	</update>
+	
+	<!-- 리포트 지역 상권 분석 삭제 -->
+	<update id="deleteReportBusinessDistrictAnalysisByStoreId" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_report_business_district_analysis
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id IN (SELECT report_id
+		    			  FROM t_report
+		    			  WHERE 1 = 1
+		    			  AND store_id = #{storeId})
+	</update>
+	
+	<!-- 리포트 지역 입지 분석 삭제 -->
+	<update id="deleteReportBusinessDistrictAnalysisByReportId" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report_business_district_analysis
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+	
+	
+	<!--              리포트 정보 테이블                                      -->
+	<!--  리포트 정보 전체 조회 -->
+	<select id="reportInformationByAll" resultType="com.jyes.www.vo.report.ReportInformationVo">
+		SELECT 
+		    report_information_id AS reportInformationId,
+		    common_information_id AS commonInformationId,
+		    report_id AS reportId,
+		    title AS title,
+		    content AS content,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_information
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+	</select>
+	
+	<!--  리포트 정보 조회 -->
+	<select id="reportInformationById" resultType="com.jyes.www.vo.report.ReportInformationVo">
+		SELECT 
+		    report_information_id AS reportInformationId,
+		    common_information_id AS commonInformationId,
+		    report_id AS reportId,
+		    title AS title,
+		    content AS content,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_information
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_information_id = #{reportInformationId}
+	</select>
+	
+	<!--  리포트 정보 조회 -->
+	<select id="getReportInformationById" parameterType="map" resultType="com.jyes.www.dto.report.ReportInformationDTO">
+		SELECT 
+		    report_information_id AS reportInformationId,
+		    common_information_id AS commonInformationId,
+		    report_id AS reportId,
+		    title AS title,
+		    content AS content,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_information
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_information_id = #{reportInformationId}
+	</select>
+	
+	<!--  리포트에 해당하는 리포트 정보 조회 -->
+	<select id="reportInformationByReportId" parameterType="map" resultType="com.jyes.www.dto.report.ReportInformationDTO">
+		SELECT 
+		    report_information_id AS reportInformationId,
+		    common_information_id AS commonInformationId,
+		    report_id AS reportId,
+		    title AS title,
+		    content AS content,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_information
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_id = #{reportId}
+	</select>
+	
+	<select id="getReportInformationLastViewSeq" parameterType="map" resultType="int">
+		SELECT 
+			IFNULL(MAX(view_seq) + 1, 5) AS viewSeq
+		FROM 
+			t_report_information 
+		WHERE 
+			1 = 1
+		AND 
+			report_id = #{reportId}
+	</select>
+	
+	<!--  리포트 정보 조회 -->
+	<select id="viewReportInformation" parameterType="map" resultType="com.jyes.www.dto.report.ReportInformationDTO">
+		SELECT 
+		    report_information_id AS reportInformationId,
+		    common_information_id AS commonInformationId,
+		    report_id AS reportId,
+		    title AS title,
+		    content AS content,
+		    file_group_id AS fileGroupId,
+		    view_seq AS viewSeq,
+		    view_is_hid AS viewIsHid,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_report_information
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND	
+			report_id = #{reportId}
+	</select>
+	
+	<!-- 리포트 정보 등록  -->
+	<insert id="insertReportInformation" parameterType="com.jyes.www.vo.report.ReportInformationVo" useGeneratedKeys="true" keyProperty="reportInformationId">
+		INSERT INTO t_report_information 
+			(report_id, 
+			 <if test="commonInformationId != null and commonInformationId > 0">
+			     common_information_id, 
+			 </if>
+		     title, 
+		     content, 
+		     <if test="fileGroupId != null and fileGroupId > 0">
+		     	file_group_id,	
+		     </if>
+		     view_seq,
+		     reg_id, 
+		     reg_date) 
+	     VALUES 
+	     	(#{reportId}, 
+	     	 <if test="commonInformationId != null and commonInformationId > 0">
+	     	     #{commonInformationId},
+	     	 </if>
+		     #{title}, 
+		     #{content}, 
+		     <if test="fileGroupId != null and fileGroupId > 0">
+		     	#{fileGroupId}, 
+		     </if>
+		     #{viewSeq}, 
+		     #{regId}, 
+		     NOW())
+	</insert>
+	
+	<!-- 리포트 지역 상권 순번 수정 -->
+	<update id="reportInformationViewChange" parameterType="com.jyes.www.vo.report.ReportInformationVo">
+		UPDATE t_report_information 
+		SET 
+	    	view_seq = #{viewSeq},
+	    	view_is_hid = #{viewIsHid},
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_information_id = #{reportInformationId}
+	</update>
+	
+	<!--  리포드 정보 수정  -->
+	<update id="updateReportInformation" parameterType="com.jyes.www.vo.report.ReportInformationVo">
+		UPDATE t_report_information 
+		SET 
+			title = #{title},
+	    	content = #{content},
+	    	<if test="fileGroupId != null and fileGroupId > 0">
+	    		file_group_id = #{fileGroupId},
+	    	</if>
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_information_id = #{reportInformationId}
+	</update>
+	
+	<!--  리포드 정보 수정  -->
+	<update id="deleteReportInformation" parameterType="com.jyes.www.vo.report.ReportInformationVo">
+		UPDATE t_report_information 
+		SET 
+			is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_information_id = #{reportInformationId}
+	</update>
+	
+	<!-- 리포트 지역 입지 분석 삭제 -->
+	<update id="deleteReportInformationByReportId" parameterType="com.jyes.www.vo.report.ReportVo">
+		UPDATE t_report_information
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    report_id = #{reportId}
+	</update>
+
+</mapper>

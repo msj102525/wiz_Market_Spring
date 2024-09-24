@@ -1,0 +1,6 @@
+/* 클래스명으로 스타일 지정 */
+.uploading-image {
+    width: 276px;  /* 고정된 너비 */
+    height: 135px;  /* 고정된 높이 */
+    object-fit: cover;  /* 비율 무시하고 고정된 크기로 맞추기 */
+}

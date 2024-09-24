@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jyes.www.mapper.sample.SampleMapper">
+
+	<!-- <resultMap id="userMap" type="kr.cloudsc.openpaas.sample.vo.UserVo">
+        <result property="email"    column="EMAIL" />
+        <result property="public_nm" column="PUBLIC_NM"/>
+        <result property="mobile_num" column="MOBILE_NUM"/>
+        <result property="passwd" column="PASSWD"/>
+        <result property="update_dt" column="UPDATE_DT"/>
+        <result property="insert_dt" column="INSERT_DT"/>
+        <result property="status" column="STATUS"/>
+        <result property="charge_nm" column="CHARGE_NM"/>
+        <result property="re_contents" column="RE_CONTENTS"/>
+        <result property="file_path" column="FILE_PATH"/>
+        <result property="file_nm" column="FILE_NM"/>
+        <result property="user_seq" column="USER_SEQ"/>
+        <result property="gear_cnt" column="gear_cnt"/>
+        <result property="gear_kind" column="gear_kind"/>
+    </resultMap> -->
+    
+    <!-- resultType="com.jyes.www.vo.sample.SampleVo" -->
+    <!-- parameterType="com.jyes.www.vo.sample.SampleVo" -->
+	<!-- <select id="selectOne" resultMap="userMap" parameterType="String">
+		SELECT PUBLIC_NM FROM TB_USER WHERE EMAIL=#{email}
+	</select> -->
+    
+	<select id="selectOne" resultType="String">
+		select now()
+	</select>
+    
+	<insert id="insertData" parameterType="com.jyes.www.vo.sample.SampleVo">
+		insert into tb_template (user_name, user_age, insert_date) values (#{user_name}, #{user_age}, now())
+	</insert>
+    
+	<select id="selectDataList" resultType="com.jyes.www.vo.sample.SampleVo">
+		select * from tb_template;
+	</select>
+	
+</mapper>

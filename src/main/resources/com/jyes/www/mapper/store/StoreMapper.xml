@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jyes.www.mapper.store.StoreMapper">
+
+	<!--  매장 전체 조회  -->
+	<select id="storeByAll" resultType="com.jyes.www.vo.store.StoreListVo">
+		SELECT 
+		    store_id AS storeId,
+		    name AS name,
+		    start_date AS startDate,
+		    is_deleted AS isDeleted,
+		    etc AS etc,
+		    reg_id AS regId,
+		    reg_date AS regDate,
+		    mod_id AS modId,
+		    mod_date AS modDate
+		FROM 
+		    t_store
+		WHERE 
+			1 = 1
+		AND 
+			is_deleted = 'N'
+	</select>
+
+	<!-- 매장 조회 -->
+	<select id="storeById" parameterType="map" resultType="com.jyes.www.vo.store.StoreVo">
+		SELECT 
+			store_id as storeId,
+			name as name,
+			start_date as startDate,
+			is_deleted as isDeleted,
+			etc as etc,
+			reg_id as regId,
+			reg_date as regDate,
+			mod_id as modId,
+			mod_date as modDate
+		FROM 
+			T_STORE TS 
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND 
+			store_id = #{storeId}
+	</select>
+	
+	<!-- 매장 조회 -->
+	<select id="storeInfoById" parameterType="map" resultType="com.jyes.www.dto.store.StoreViewResponseDTO">
+		SELECT 
+			store_id AS storeId,
+			name AS name,
+			DATE_FORMAT(start_date, '%Y-%m-%d') AS startDate,
+			DATE_FORMAT(reg_date, '%Y-%m-%d %H:%i') AS regDate
+		FROM 
+			T_STORE TS 
+		WHERE 
+			1 = 1
+		AND	
+			is_deleted = 'N'
+		AND 
+			store_id = #{storeId}
+	</select>
+
+	<!-- 매장 목록 검색 -->
+	<select id="storeListByConditionSearch" parameterType="com.jyes.www.dto.store.StoreSearchRequestDTO" resultType="com.jyes.www.vo.store.StoreListVo">
+		SELECT 
+			ts.store_id AS storeId,
+			ts.name AS name, 
+			if(tra.report_additional_id IS NULL, '미등록', CONCAT(tra.addr, ' ', COALESCE(tra.addr_detail, ''))) AS addr,
+			ts.reg_date AS regDate
+		FROM t_store AS ts
+		LEFT OUTER JOIN (SELECT 
+							max(report_id) AS report_id,
+							store_id
+						 FROM t_report tr
+						 GROUP BY store_id
+						 ORDER BY report_id DESC
+						) AS tr
+		ON ts.store_id = tr.store_id
+		LEFT OUTER JOIN t_report_additional AS tra
+		ON tr.report_id = tra.report_id
+		WHERE 
+			1 = 1 
+		AND 
+			ts.is_deleted = 'N' 
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND 
+				(ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+					OR 
+				 ts.store_id = #{searchKeyword} 
+				 	OR 
+				 tra.addr LIKE CONCAT('%', #{searchKeyword}, '%') 
+				 	OR 
+				 tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+		</if>
+		ORDER BY ts.store_id DESC
+		LIMIT ${pageRow} OFFSET ${page}
+	</select>
+	
+	<!-- 매장 목록 검색 -->
+	<select id="storeListByConditionSearchCount" parameterType="com.jyes.www.dto.store.StoreSearchRequestDTO" resultType="int">
+		SELECT 
+			count(ts.store_id) AS count
+		FROM t_store AS ts
+		LEFT OUTER JOIN (SELECT 
+							max(report_id) AS report_id,
+							store_id
+						 FROM t_report tr
+						 GROUP BY store_id
+						 ORDER BY report_id DESC
+						) AS tr
+		ON ts.store_id = tr.store_id
+		LEFT OUTER JOIN t_report_additional AS tra
+		ON tr.report_id = tra.report_id
+		WHERE 
+			1 = 1 
+		AND 
+			ts.is_deleted = 'N' 
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND 
+				(ts.name LIKE CONCAT('%', #{searchKeyword}, '%') 
+					OR 
+				 ts.store_id = #{searchKeyword} 
+				 	OR 
+				 tra.addr LIKE CONCAT('%', #{searchKeyword}, '%') 
+				 	OR 
+				 tra.addr_detail LIKE CONCAT('%', #{searchKeyword}, '%'))
+		</if>
+	</select>
+	
+	<!-- 매장 목록 이름 검색 -->
+	<select id="storeListByName" parameterType="com.jyes.www.dto.store.StoreSearchRequestDTO" resultType="com.jyes.www.vo.store.StoreListVo">
+		SELECT 
+			ts.store_id AS storeId,
+			ts.name AS name, 
+			if(tra.report_additional_id IS NULL, '미등록', CONCAT(tra.addr, ' ', COALESCE(tra.addr_detail, ''))) AS addr,
+			ts.reg_date AS regDate
+		FROM t_store AS ts
+		LEFT OUTER JOIN (SELECT 
+							max(report_id) AS report_id,
+							store_id
+						 FROM t_report tr
+						 GROUP BY store_id
+						 ORDER BY report_id DESC
+						) AS tr
+		ON ts.store_id = tr.store_id
+		LEFT OUTER JOIN t_report_additional AS tra
+		ON tr.report_id = tra.report_id
+		WHERE 
+			1 = 1 
+		AND 
+			ts.is_deleted = 'N' 
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND 
+				ts.name LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+		ORDER BY ts.store_id DESC
+		LIMIT ${pageRow} OFFSET ${page}
+	</select>
+	
+	<!-- 매장 목록 이름 검색 -->
+	<select id="storeListByNameCount" parameterType="com.jyes.www.dto.store.StoreSearchRequestDTO" resultType="int">
+		SELECT 
+			count(ts.store_id) AS count
+		FROM t_store AS ts
+		LEFT OUTER JOIN (SELECT 
+							max(report_id) AS report_id,
+							store_id
+						 FROM t_report tr
+						 GROUP BY store_id
+						 ORDER BY report_id DESC
+						) as tr
+		ON ts.store_id = tr.store_id
+		LEFT OUTER JOIN t_report_additional as tra
+		ON tr.report_id = tra.report_id
+		WHERE 
+			1 = 1 
+		AND 
+			ts.is_deleted = 'N' 
+		<if test="searchKeyword != null and searchKeyword != ''">
+			AND 
+				ts.name LIKE CONCAT('%', #{searchKeyword}, '%')
+		</if>
+	</select>
+
+	<!-- 매장 등록 -->
+	<insert id="insertStore" parameterType="com.jyes.www.vo.store.StoreVo" useGeneratedKeys="true" keyProperty="storeId">
+		INSERT INTO t_store 
+			(name,
+			 start_date,
+			 reg_id,
+			 reg_date)
+		VALUES
+  			(#{name},
+  			 #{startDate},
+  			 #{regId}, 
+  			 NOW())
+	</insert>
+	
+	<!-- 매장 수정 -->
+	<update id="updateStore" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_store
+		SET 
+		    <if test="startDate != null and startDate != ''">
+		    	start_date = #{startDate},
+		    </if>
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    store_id = #{storeId}
+	</update>
+	
+	<!-- 매장 삭제 -->
+	<update id="deleteStore" parameterType="com.jyes.www.vo.store.StoreVo">
+		UPDATE t_store
+		SET 
+	    	is_deleted = 'Y',
+		    mod_id = #{modId},
+		    mod_date = NOW()
+		WHERE
+		    store_id = #{storeId}
+	</update>
+	
+</mapper>
