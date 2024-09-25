@@ -1,5 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.jyes.www</groupId>
 	<artifactId>spring3-mvc</artifactId>
@@ -8,7 +9,7 @@
 	<name>spring3-mvc</name>
 
 	<profiles>
-	
+
 		<!-- mvn tomcat7:redeploy -P local -->
 		<profile>
 			<id>local</id>
@@ -20,7 +21,7 @@
 				<war.name>ROOT</war.name>
 			</properties>
 		</profile>
-		
+
 		<!-- mvn tomcat7:redeploy -P spring3-mvc -->
 		<profile>
 			<id>report</id>
@@ -32,9 +33,9 @@
 				<war.name>ROOT</war.name>
 			</properties>
 		</profile>
-		
+
 	</profiles>
-	
+
 	<properties>
 		<war.name>ROOT</war.name>
 		<java-version>1.7</java-version>
@@ -48,7 +49,7 @@
 		<org.aspectj-version>1.6.10</org.aspectj-version>
 		<m2eclipse.wtp.contextRoot>/</m2eclipse.wtp.contextRoot>
 	</properties>
-  
+
 	<repositories>
 		<repository>
 			<id>springbyexample.org</id>
@@ -56,7 +57,7 @@
 			<url>http://www.springbyexample.org/maven/repo</url>
 		</repository>
 	</repositories>
-	
+
 	<dependencies>
 
 		<!-- Test -->
@@ -66,7 +67,7 @@
 			<version>4.7</version>
 			<scope>test</scope>
 		</dependency>
-	
+
 		<!-- Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -82,20 +83,20 @@
 				<!-- log4j next -->
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
-		
+
 		<!-- package org.apache.commons.logging does not exist 오류로 추가 -->
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		
+
 		<!-- context-datasource.xml(dataSourceSpied) -> DataSourceConfig.java -->
 		<dependency>
 			<groupId>cglib</groupId>
@@ -110,21 +111,21 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>${org.slf4j-version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${org.slf4j-version}</version>
 			<!-- <scope>runtime</scope> -->
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${org.slf4j-version}</version>
 			<!-- <scope>runtime</scope> -->
 		</dependency>
-		
+
 		<!-- log4j -->
 		<dependency>
 			<groupId>log4j</groupId>
@@ -152,27 +153,27 @@
 		</dependency>
 		<!-- log4j end -->
 
-		<!-- Servlet -->		
-	    <dependency>
-	        <groupId>javax.servlet</groupId>
-	        <artifactId>jstl</artifactId>
-	        <version>1.2</version>
-	    </dependency>
-	    
-	    <dependency>
-	        <groupId>javax.servlet.jsp</groupId>
-	        <artifactId>jsp-api</artifactId>
-	        <version>2.2</version>
-	        <scope>provided</scope>
-	    </dependency>
-	    
-	    <dependency>
-	        <groupId>javax.servlet</groupId>
-	        <artifactId>javax.servlet-api</artifactId>
-	        <version>3.0.1</version>
-	        <scope>provided</scope>
-	    </dependency>
-		
+		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.2</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<!-- DB start -->
 		<!-- mysql -->
 		<dependency>
@@ -195,7 +196,7 @@
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
 		</dependency>
-		
+
 		<!-- mybatis -->
 		<dependency>
 			<groupId>org.mybatis</groupId>
@@ -208,43 +209,43 @@
 			<artifactId>mybatis-spring</artifactId>
 			<version>${org.mybatis.spring.version}</version>
 		</dependency>
-		
+
 		<!-- log4j mybatis query log -->
 		<dependency>
-		    <groupId>org.lazyluke</groupId>
-		    <artifactId>log4jdbc-remix</artifactId>
-		    <version>0.2.7</version>
+			<groupId>org.lazyluke</groupId>
+			<artifactId>log4jdbc-remix</artifactId>
+			<version>0.2.7</version>
 		</dependency>
-	    <!-- DB end -->
-	
-	    <!-- API start -->
+		<!-- DB end -->
+
+		<!-- API start -->
 		<!-- Jackson(MappingJacksonHttpMessageConverter) -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.databind-version}</version>
 		</dependency>
-		
-	    <dependency>
-	        <groupId>org.codehaus.jackson</groupId>
-	        <artifactId>jackson-core-asl</artifactId>
-	        <version>${org.codehaus.jackson.version}</version>
-	    </dependency>
-	    
-	    <dependency>
-	        <groupId>org.codehaus.jackson</groupId>
-	        <artifactId>jackson-mapper-asl</artifactId>
-	        <version>${org.codehaus.jackson.version}</version>
-	    </dependency>
-	    
-	    <!-- xml(@XmlRootElement) -->
+
 		<dependency>
-		    <groupId>com.fasterxml.jackson.module</groupId>
-		    <artifactId>jackson-module-jaxb-annotations</artifactId>
-		    <version>2.9.0</version>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-core-asl</artifactId>
+			<version>${org.codehaus.jackson.version}</version>
 		</dependency>
-	    <!-- API end -->
-		
+
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>${org.codehaus.jackson.version}</version>
+		</dependency>
+
+		<!-- xml(@XmlRootElement) -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-jaxb-annotations</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+		<!-- API end -->
+
 		<!-- Multipart -->
 		<dependency>
 			<groupId>commons-fileupload</groupId>
@@ -257,7 +258,7 @@
 			<artifactId>commons-io</artifactId>
 			<version>1.4</version>
 		</dependency>
-		
+
 		<!-- AspectJ 1.6.10 -->
 		<dependency>
 			<groupId>org.aspectj</groupId>
@@ -266,24 +267,24 @@
 		</dependency>
 
 		<dependency>
-		    <groupId>org.aspectj</groupId>
-		    <artifactId>aspectjrt</artifactId>
-		    <version>${org.aspectj-version}</version>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjrt</artifactId>
+			<version>${org.aspectj-version}</version>
 		</dependency>
-		
+
 		<!-- http : https -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
-		
+
 		<!-- Tiles2 -->
 		<dependency>
 			<groupId>org.apache.tiles</groupId>
@@ -305,20 +306,20 @@
 			<artifactId>dynamic-tiles2</artifactId>
 			<version>1.1</version>
 		</dependency>
-		
+
 		<!-- https://mvnrepository.com/artifact/org.apache.sanselan/sanselan -->
 		<dependency>
-		    <groupId>org.apache.sanselan</groupId>
-		    <artifactId>sanselan</artifactId>
-		    <version>0.97-incubator</version>
+			<groupId>org.apache.sanselan</groupId>
+			<artifactId>sanselan</artifactId>
+			<version>0.97-incubator</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.10</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -326,57 +327,57 @@
 		</dependency>
 
 	</dependencies>
-	
+
 	<build>
-	
-	    <finalName>${war.name}</finalName>
-	    
-	    <!-- add resources java -->
+
+		<finalName>${war.name}</finalName>
+
+		<!-- add resources java -->
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-		
+
 		<plugins>
-			
+
 			<!-- use maven version -->
-	        <plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.2</version>
 				<configuration>
 					<warSourceDirectory>src/main/webapp</warSourceDirectory>
-                    <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+					<webXml>src/main/webapp/WEB-INF/web.xml</webXml>
 				</configuration>
 			</plugin>
-	        
-	        <!-- use jdk version -->
-	        <plugin>
-	            <groupId>org.apache.maven.plugins</groupId>
-	            <artifactId>maven-compiler-plugin</artifactId>
-	            <version>2.3.2</version>
-	            <configuration>
-	                <source>${java-version}</source>
-	                <target>${java-version}</target>
-	                <encoding>${project.build.sourceEncoding}</encoding>
-	            </configuration>
-	        </plugin>
-			
+
+			<!-- use jdk version -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
 			<!-- dependency jar, javadoc download -->
-	        <plugin>
-	            <artifactId>maven-eclipse-plugin</artifactId>
-	            <version>2.9</version>
-	            <configuration>
-	                <downloadSources>true</downloadSources>
-	                <downloadJavadocs>true</downloadJavadocs>
-	                <wtpversion>2.0</wtpversion>
-	            </configuration>
-	        </plugin>
-			
-	        <!-- tomcat deploy plugin -->
-	        <plugin>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<wtpversion>2.0</wtpversion>
+				</configuration>
+			</plugin>
+
+			<!-- tomcat deploy plugin -->
+			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.2</version>
@@ -391,9 +392,9 @@
 					</systemProperties>
 				</configuration>
 			</plugin>
-			
+
 		</plugins>
-		
+
 	</build>
-	
+
 </project>

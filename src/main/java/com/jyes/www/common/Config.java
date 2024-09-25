@@ -32,7 +32,7 @@ public class Config {
 		} else {
 			LOG4J_XML = LOG4J_XML_DEP;
 		}
-		DOMConfigurator.configure(Config.class.getClassLoader().getResource(LOG4J_XML));
+		// DOMConfigurator.configure(Config.class.getClassLoader().getResource(LOG4J_XML));
 		if(isDevMode) {
 			log.info("개발 모드 IP:"+NetUtils.getServerIp());
 		} else {

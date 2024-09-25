@@ -255,6 +255,7 @@ public class ReportService implements IReportService {
 		return reportMapper.viewReportInformation(param);
 	}
 
+	// 고객 제공
 	@Override
 	public ReportDTO viewReport(Map<String, Object> param) throws SQLException {
 		return reportMapper.viewReport(param);

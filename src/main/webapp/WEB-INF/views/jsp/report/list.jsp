@@ -184,19 +184,21 @@
                                         "<div class='frame-1261152506'>" +
                                         //report.url.replace("report.jyes.co.kr", "localhost:82")
 
-                                        "<a href='" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
-                                        "?isPreview=Y' onclick='window.open(\"" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
-                                        "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
-                                        
+                                        // "<a href='" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
+                                        // "?isPreview=Y' onclick='window.open(\"" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
+                                        // "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
+
                                         //  "<a href='" + (report.url || "") + 
                                         //  "?isPreview=Y' onclick='window.open(\""+ (report.url || "") + 
                                         //  "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
 
-                                        // "<a href='" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
-                                        // "?isPreview=Y' onclick='window.open(\"" + (report.url.replace("report.jyes.co.kr", "localhost:3001/report") || "") +
+                                        "<a href='" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
+                                        "?isPreview=Y' onclick='window.open(\"" + (report.url.replace("report.jyes.co.kr", "localhost:3001/report") || "") +
                                         // "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
-                                        
+                                        "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
+
                                         "<img class='vector' src='<%=path%>/assets/vectors/vector_42_x2.svg' />" +
+                                        "</a>" +
                                         "</div>" +
 
                                         "<div class='container-12'>" + (report.regDate || "") + "</div>" +
