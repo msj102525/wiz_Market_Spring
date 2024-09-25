@@ -13,7 +13,8 @@ public class Config {
 	/**
 	 * ###dev true:개발, false: 상용
 	 */
-	public static boolean isDevMode = false;
+	// public static boolean isDevMode = false;
+	public static boolean isDevMode = true;
 
 	/**
 	 *  log4j 파일 변수
