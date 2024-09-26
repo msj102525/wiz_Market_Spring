@@ -194,8 +194,8 @@
 
                                         "<a href='" + (report.url.replace("report.jyes.co.kr", "localhost:8080") || "") +
                                         "?isPreview=Y' onclick='window.open(\"" + (report.url.replace("report.jyes.co.kr", "localhost:3001/report") || "") +
-                                        // "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
                                         "?isPreview=Y\", \"_blank\", \"width=436, height=852\"); return false;'>" +
+                                        // "?isPreview=Y\", \"_blank\", \"\"); return false;'>" +
 
                                         "<img class='vector' src='<%=path%>/assets/vectors/vector_42_x2.svg' />" +
                                         "</a>" +
